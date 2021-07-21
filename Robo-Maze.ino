@@ -1,21 +1,22 @@
+// pin initialization for front ultrasonic senosr
 int trigger_pin1 = 2;
 int echo_pin1 = 3;
-
+// pin initialization for left ultrasonic sensor
 int trigger_pin2 = 12 ;
 int echo_pin2 = 13;
-
+// pin initialization for right ultrasonic sensor
 int trigger_pin3 = 4;
 int echo_pin3 = 5;
 
 //right motor
 int rm1 = 9;
 int rm2 = 10;
-int en1 = 11;
+int en1 = 11; // enable (PWM) 
 
 //left motor
 int lm1 = 7;
 int lm2 = 8;
-int en2 = 6;
+int en2 = 6; // enable (pwm)
 
 void setup()
 {
@@ -28,17 +29,18 @@ void setup()
   //right sensor
   pinMode(trigger_pin3, OUTPUT);
   pinMode(echo_pin3, INPUT);
-  //right sensor
+  //right motor
   pinMode(rm1, OUTPUT);
   pinMode(rm2, OUTPUT);
   pinMode(en1, OUTPUT);
-  //left sensor
+  //left motor
   pinMode(lm1, OUTPUT);
   pinMode(lm2, OUTPUT);
   pinMode(en2, OUTPUT);
-  Serial.begin(9600);
+  Serial.begin(9600); // set serial baud rate to 9600
 }
-double front_sensor()
+
+int front_sensor() //front ultraonic sensor
 {
   digitalWrite(trigger_pin1, LOW);
   delay(100);
@@ -46,13 +48,14 @@ double front_sensor()
   delay(10);
   digitalWrite(trigger_pin1, LOW);
   long duration1 = pulseIn(echo_pin1, HIGH);
-  double distance1 = duration1 * 0.034 / 2;
+  int distance1 = duration1 * 0.034 / 2;
   if (distance1 > 100) {
     distance1 = 0;
   }
   return distance1;
 }
-double left_sensor()
+
+int left_sensor() // left ultrasonic sensor
 {
   digitalWrite(trigger_pin2, LOW);
   delay(100);
@@ -60,13 +63,14 @@ double left_sensor()
   delay(10);
   digitalWrite(trigger_pin2, LOW);
   long duration2 = pulseIn(echo_pin2, HIGH);
-  double distance2 = duration2 * 0.034 / 2;
+  int distance2 = duration2 * 0.034 / 2;
   if (distance2 > 100) {
     distance2 = 0;
   }
   return distance2;
 }
-double right_sensor()
+
+int right_sensor() //right ultrasonic sensor
 {
   digitalWrite(trigger_pin3, LOW);
   delay(100);
@@ -74,13 +78,14 @@ double right_sensor()
   delay(10);
   digitalWrite(trigger_pin3, LOW);
   long duration3 = pulseIn(echo_pin3, HIGH);
-  double distance3 = duration3 * 0.034 / 2;
+  int distance3 = duration3 * 0.034 / 2;
   if (distance3 > 100) {
     distance3 = 0;
   }
   return distance3;
 }
-void right()
+
+void right() // move the robot to the right
 {
   digitalWrite(rm1, LOW);
   digitalWrite(rm2, HIGH);
@@ -91,7 +96,8 @@ void right()
   Serial.println("===============");
   Serial.println("RIGHT");
 }
-void left()
+
+void left() // move the robot to the left
 {
   digitalWrite(rm1, HIGH);
   digitalWrite(rm2, LOW);
@@ -102,7 +108,8 @@ void left()
   Serial.println("===============");
   Serial.println("LEFT");
 }
-void forward()
+
+void forward() // move the robot forward
 {
   digitalWrite(rm1, HIGH);
   digitalWrite(rm2, LOW);
@@ -113,7 +120,8 @@ void forward()
   Serial.println("===============");
   Serial.println("FORWARD");
 }
-void backward()
+
+void backward() // move the robot backward
 {
   digitalWrite(rm1, LOW);
   digitalWrite(rm2, HIGH);
@@ -124,7 +132,7 @@ void backward()
   Serial.println("===============");
   Serial.println("BACKWARD");
 }
-void stops()
+void stops() // stop the robot
 {
   digitalWrite(rm1, LOW);
   digitalWrite(rm2, LOW);
@@ -132,53 +140,49 @@ void stops()
   digitalWrite(lm2, LOW);
   analogWrite(en1, 0);
   analogWrite(en2, 0);
-
   Serial.println("===============");
   Serial.println("STOP");
 }
 
 
-void loop()
+void loop() // main loop
 {
-  double f = front_sensor();
-  double l = left_sensor();
-  double r = right_sensor();
-
-
+  int f = front_sensor(); // front sensor proximity  
+  int l = left_sensor();// left sensor proximity
+  int r = right_sensor(); // right sensor proximity
 
   Serial.print("left: ");
   Serial.print(l);
-
   Serial.print("forward: ");
   Serial.print(f);
-
-
   Serial.print("right: ");
   Serial.println(r);
   Serial.println("____________________________________________");
 
-  while (f<60 and f>30)
-  {
-    forward();
-  }
-  if (f < 30)
+  if (l == 0 || r == 0 || f == 0) // if any sensor is out of range
   {
     stops();
-    delay(500);
-    if (r > l)
+    delay(100); // to counter vehicle momentum small delay is used
+  }
+  else if ((f>0)  && (f < 15)) // if any obstacle within 15 cm
+  {
+    stops();
+    delay(100);
+
+    if (r > l) // if right proximity is greater than left proximity
     {
-      right();
-      delay(215);
-    } else
+      right(); // move right
+      delay(500); // set this dely according to the time taken by bot to rotate left 90 degree
+    } 
+    else
     {
       left();
-      delay(215);
+      delay(500); // set this delay according to the time taken by bot to rotate left 90 degree
     }
-  } else if (l = 0 )
-  {
-    stops();
-    delay(400);
-    backward();
-    delay(400);
+  } 
+  else 
+  { 
+    forward(); // move forward
+    delay(100);
   }
 }
